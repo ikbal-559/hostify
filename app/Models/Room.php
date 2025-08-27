@@ -6,5 +6,34 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
-    //
+    public const SINGLE_BED = 1;
+    public const DOUBLE_BED = 2;
+    public const TWO_SINGLE_BEDS = 3;
+    public const FAMILY_ROOM = 4;
+
+    public const STATUS_AVAILABLE = 1;
+    public const STATUS_OCCUPIED = 2;
+    public const STATUS_MAINTENANCE = 3;
+
+    protected $fillable = [
+        'number',
+        'room_type_id',
+        'availability_status',
+        'bed_type',
+        'number_of_beds',
+        'description',
+        'thumbnail',
+        'price_per_night',
+        'capacity',
+        'floor',
+        'room_size',
+        'view',
+        'smoking_allowed',
+        'special_notes',
+    ];
+
+    public function roomType()
+    {
+        return $this->belongsTo(RoomType::class);
+    }
 }

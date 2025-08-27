@@ -25,6 +25,8 @@ Route::middleware([
 
     Route::resource('room-types', App\Http\Controllers\RoomTypeController::class);
     Route::resource('rooms', App\Http\Controllers\RoomController::class);
+    // Allow POST for update to support file uploads with method override
+    Route::post('rooms/{room}', [App\Http\Controllers\RoomController::class, 'update'])->name('rooms.update');
     Route::resource('reservations', App\Http\Controllers\ReservationController::class);
 
 

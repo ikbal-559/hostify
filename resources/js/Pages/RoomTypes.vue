@@ -50,7 +50,7 @@ function editRoomType(id) {
               </tbody>
             </table>
           </div>
-          <div v-else class="p-4">No room types found.</div>
+          <div v-else class="p-4 dark:text-white">No room types found.</div>
         </div>
       </div>
     </div>
