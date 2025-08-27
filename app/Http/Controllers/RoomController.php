@@ -18,8 +18,12 @@ class RoomController extends Controller
     public function index()
     {
         $rooms = Room::with('roomType')->get();
+        $availabilityStatusOptions = Room::availabilityStatusOptions();
+        $bedTypeOptions = Room::bedTypeOptions();
         return Inertia::render('Rooms', [
-            'rooms' => $rooms
+            'rooms' => $rooms,
+            'availabilityStatusOptions' => $availabilityStatusOptions,
+            'bedTypeOptions' => $bedTypeOptions
         ]);
     }
 
@@ -29,8 +33,12 @@ class RoomController extends Controller
     public function create()
     {
         $roomTypes = RoomType::all();
+        $availabilityStatusOptions = Room::availabilityStatusOptions();
+        $bedTypeOptions = Room::bedTypeOptions();
         return Inertia::render('Rooms/Create', [
-            'roomTypes' => $roomTypes
+            'roomTypes' => $roomTypes,
+            'availabilityStatusOptions' => $availabilityStatusOptions,
+            'bedTypeOptions' => $bedTypeOptions
         ]);
     }
 
@@ -70,9 +78,13 @@ class RoomController extends Controller
     public function edit(Room $room)
     {
         $roomTypes = RoomType::all();
+        $availabilityStatusOptions = Room::availabilityStatusOptions();
+        $bedTypeOptions = Room::bedTypeOptions();
         return Inertia::render('Rooms/Edit', [
             'room' => $room,
-            'roomTypes' => $roomTypes
+            'roomTypes' => $roomTypes,
+            'availabilityStatusOptions' => $availabilityStatusOptions,
+            'bedTypeOptions' => $bedTypeOptions
         ]);
     }
 

@@ -6,6 +6,9 @@ import { ref } from 'vue';
 import PrimarySubmitButton from '@/Components/PrimarySubmitButton.vue';
 
 const roomTypes = usePage().props.roomTypes || [];
+const availabilityStatusOptions = usePage().props.availabilityStatusOptions || [];
+const bedTypeOptions = usePage().props.bedTypeOptions || [];
+
 const form = useForm({
     number: '',
     room_type_id: '',
@@ -67,9 +70,9 @@ function submit() {
                                 </label>
                                 <select v-model="form.availability_status" id="availability_status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600" :class="{'border-red-500': form.errors.availability_status}">
                                     <option value="">Select Status</option>
-                                    <option value="1">Available</option>
-                                    <option value="2">Occupied</option>
-                                    <option value="3">Maintenance</option>
+                                    <option v-for="option in availabilityStatusOptions" :key="option.value" :value="option.value">
+                                        {{ option.label }}
+                                    </option>
                                 </select>
                                 <div v-if="form.errors.availability_status" class="text-red-500 text-xs mt-1">{{ form.errors.availability_status }}</div>
                             </div>
@@ -79,10 +82,9 @@ function submit() {
                                 </label>
                                 <select v-model="form.bed_type" id="bed_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600" :class="{'border-red-500': form.errors.bed_type}">
                                     <option value="">Select Bed Type</option>
-                                    <option value="1">Single Bed</option>
-                                    <option value="2">Double Bed</option>
-                                    <option value="3">Two Single Beds</option>
-                                    <option value="4">Family Room</option>
+                                    <option v-for="option in bedTypeOptions" :key="option.value" :value="option.value">
+                                        {{ option.label }}
+                                    </option>
                                 </select>
                                 <div v-if="form.errors.bed_type" class="text-red-500 text-xs mt-1">{{ form.errors.bed_type }}</div>
                             </div>

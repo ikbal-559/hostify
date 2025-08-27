@@ -4,6 +4,8 @@ import BasicButton from '@/Components/BasicButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
 const rooms = usePage().props.rooms || [];
+const availabilityStatusOptions = usePage().props.availabilityStatusOptions || [];
+const bedTypeOptions = usePage().props.bedTypeOptions || [];
 
 function editRoom(id) {
   window.location = route('rooms.edit', id);
@@ -32,6 +34,7 @@ function editRoom(id) {
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-100 uppercase tracking-wider">ID</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-100 uppercase tracking-wider">Room Number</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-100 uppercase tracking-wider">Room Type</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-100 uppercase tracking-wider">Availability</th>
                   <th class="px-6 py-3"></th>
                 </tr>
               </thead>
@@ -40,6 +43,7 @@ function editRoom(id) {
                   <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ room.id }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ room.number }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ room.room_type?.name }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ availabilityStatusOptions.find(option => option.value === room.availability_status)?.label }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right">
                     <button @click="editRoom(room.id)" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200 transition">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">

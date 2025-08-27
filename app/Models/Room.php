@@ -36,4 +36,50 @@ class Room extends Model
     {
         return $this->belongsTo(RoomType::class);
     }
+
+        /**
+     * Get the available status options for a room.
+     *
+     * @return array
+     */
+    public static function availabilityStatusOptions(): array
+    {
+        return [
+            [
+                'value' => self::STATUS_AVAILABLE,
+                'label' => 'Available',
+            ],
+            [
+                'value' => self::STATUS_OCCUPIED,
+                'label' => 'Occupied',
+            ],
+            [
+                'value' => self::STATUS_MAINTENANCE,
+                'label' => 'Maintenance',
+            ],
+        ];
+    }
+
+    public static function bedTypeOptions(): array
+    {
+        return [
+            [
+                'value' => self::SINGLE_BED,
+                'label' => 'Single Bed',
+            ],
+            [
+                'value' => self::DOUBLE_BED,
+                'label' => 'Double Bed',
+            ],
+            [
+                'value' => self::TWO_SINGLE_BEDS,
+                'label' => 'Two Single Beds',
+            ],
+            [
+                'value' => self::FAMILY_ROOM,
+                'label' => 'Family Room',
+            ],
+        ];
+    }
+
 }
