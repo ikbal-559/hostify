@@ -1,5 +1,6 @@
 
 <script setup>
+import BasicButton from '@/Components/BasicButton.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
 const rooms = usePage().props.rooms || [];
@@ -16,9 +17,9 @@ function editRoom(id) {
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
           Rooms
         </h2>
-        <button @click="$inertia.visit(route('rooms.create'))" class="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <BasicButton @click="$inertia.visit(route('rooms.create'))">
           + Create
-        </button>
+        </BasicButton>
       </div>
     </template>
     <div class="py-12">
