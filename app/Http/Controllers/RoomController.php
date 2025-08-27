@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Services\RoomService;
+use App\Http\Requests\StoreRoomRequest;
+use App\Http\Requests\UpdateRoomRequest;
 
 use App\Models\Room;
 use App\Models\RoomType;
@@ -15,10 +17,10 @@ class RoomController extends Controller
      */
     public function index()
     {
-            $rooms = Room::with('roomType')->get();
-            return Inertia::render('Rooms', [
-                'rooms' => $rooms
-            ]);
+        $rooms = Room::with('roomType')->get();
+        return Inertia::render('Rooms', [
+            'rooms' => $rooms
+        ]);
     }
 
     /**
@@ -26,39 +28,32 @@ class RoomController extends Controller
      */
     public function create()
     {
-            $roomTypes = RoomType::all();
-            return Inertia::render('Rooms/Create', [
-                'roomTypes' => $roomTypes
-            ]);
+        $roomTypes = RoomType::all();
+        return Inertia::render('Rooms/Create', [
+            'roomTypes' => $roomTypes
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    /**
+     * @param StoreRoomRequest $request
+     */
+    public function store(StoreRoomRequest $request, RoomService $roomService)
     {
-        $validated = $request->validate([
-            'number' => 'required|string|max:255',
-            'room_type_id' => 'required|exists:room_types,id',
-            'availability_status' => 'required|integer',
-            'bed_type' => 'required|integer',
-            'number_of_beds' => 'required|integer',
-            'description' => 'nullable|string',
-            'thumbnail' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
-            'price_per_night' => 'required|numeric',
-            'capacity' => 'required|integer',
-            'floor' => 'required|integer',
-            'room_size' => 'nullable|string',
-            'view' => 'nullable|string',
-            'smoking_allowed' => 'required|boolean',
-            'special_notes' => 'nullable|string',
-        ]);
-        if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
+        try {
+            $validated = $request->validated();
+            $thumbnailPath = $roomService->handleThumbnailUpload($request);
+            if ($thumbnailPath) {
+                $validated['thumbnail'] = $thumbnailPath;
+            }
+            Room::create($validated);
+            return redirect()->route('rooms.index')
+                ->with('success', 'Room created successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->withErrors(['error' => 'Failed to create room. Please try again.']);
         }
-        Room::create($validated);
-        return redirect()->route('rooms.index')
-            ->with('success', 'Room created successfully!');
     }
 
     /**
@@ -72,53 +67,52 @@ class RoomController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Room $room)
     {
-            $room = Room::findOrFail($id);
-            $roomTypes = RoomType::all();
-            return Inertia::render('Rooms/Edit', [
-                'room' => $room,
-                'roomTypes' => $roomTypes
-            ]);
+        $roomTypes = RoomType::all();
+        return Inertia::render('Rooms/Edit', [
+            'room' => $room,
+            'roomTypes' => $roomTypes
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    /**
+     * @param UpdateRoomRequest $request
+     */
+    public function update(UpdateRoomRequest $request, Room $room, RoomService $roomService)
     {
-        $validated = $request->validate([
-            'number' => 'required|string|max:255',
-            'room_type_id' => 'required|exists:room_types,id',
-            'availability_status' => 'required|integer',
-            'bed_type' => 'required|integer',
-            'number_of_beds' => 'required|integer',
-            'description' => 'nullable|string',
-            'thumbnail' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
-            'price_per_night' => 'required|numeric',
-            'capacity' => 'required|integer',
-            'floor' => 'required|integer',
-            'room_size' => 'nullable|string',
-            'view' => 'nullable|string',
-            'smoking_allowed' => 'required|boolean',
-            'special_notes' => 'nullable|string',
-        ]);
-        $room = Room::findOrFail($id);
-        if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
-        } else {
-            unset($validated['thumbnail']); // Don't overwrite with null if not uploading
+        try {
+            $validated = $request->validated();
+            $thumbnailPath = $roomService->handleThumbnailUpload($request);
+            if ($thumbnailPath) {
+                $validated['thumbnail'] = $thumbnailPath;
+            } else {
+                unset($validated['thumbnail']); // Don't update thumbnail if not uploading a new one
+            }
+            $room->fill($validated);
+            $room->save();
+            return redirect()->route('rooms.index')
+                ->with('success', 'Room updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->withErrors(['error' => 'Failed to update room. Please try again.']);
         }
-        $room->update($validated);
-        return redirect()->route('rooms.index')
-            ->with('success', 'Room updated successfully!');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Room $room)
     {
-        //
+        try {
+            $room->delete();
+            return redirect()->route('rooms.index')
+                ->with('success', 'Room deleted successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Failed to delete room. Please try again.']);
+        }
     }
 }
