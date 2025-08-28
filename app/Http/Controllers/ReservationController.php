@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Room;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -11,7 +12,13 @@ class ReservationController extends Controller
      */
     public function index()
     {
-        //
+        
+            $rooms = \App\Models\Room::with('roomType')->get();
+            $roomTypes = \App\Models\RoomType::all();
+            return inertia('Reservation/Index', [
+                'rooms' => $rooms,
+                'roomTypes' => $roomTypes
+            ]);
     }
 
     /**
@@ -33,9 +40,12 @@ class ReservationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function book(string $id)
     {
-        //
+        $room = Room::findOrFail($id);
+        return inertia('Reservation/Book', [
+            'room' => $room
+        ]);
     }
 
     /**

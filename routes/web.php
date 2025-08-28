@@ -1,7 +1,11 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\RoomTypeController;
+use App\Http\Controllers\RoomController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -13,6 +17,10 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/reservation', [ReservationController::class, 'index'])->name('reservation.index');
+Route::get('/reservation/{reservation}', [ReservationController::class, 'book'])->name('reservation.book');
+
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -23,11 +31,11 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    Route::resource('room-types', App\Http\Controllers\RoomTypeController::class);
-    Route::resource('rooms', App\Http\Controllers\RoomController::class);
+    Route::resource('room-types', RoomTypeController::class);
+    Route::resource('rooms', RoomController::class);
     // Allow POST for update to support file uploads with method override
-    Route::post('rooms/{room}', [App\Http\Controllers\RoomController::class, 'update'])->name('rooms.update');
-    Route::resource('reservations', App\Http\Controllers\ReservationController::class);
+    Route::post('rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
+    
 
 
 });

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
+
     public const SINGLE_BED = 1;
     public const DOUBLE_BED = 2;
     public const TWO_SINGLE_BEDS = 3;
@@ -81,5 +82,20 @@ class Room extends Model
             ],
         ];
     }
+
+    // Accessor for thumbnail_url
+    public function getThumbnailUrlAttribute()
+    {
+        if ($this->thumbnail) {
+            // If already a full URL, return as is
+            if (preg_match('/^https?:\/\//', $this->thumbnail)) {
+                return $this->thumbnail;
+            }
+            // Otherwise, assume it's a path in storage/app/public/rooms
+            return asset('storage/rooms/' . ltrim($this->thumbnail, '/'));
+        }
+        return null;
+    }
+    
 
 }

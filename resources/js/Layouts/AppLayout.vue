@@ -108,9 +108,7 @@ const logout = () => {
                                 <NavLink :href="route('rooms.index')" :active="route().current('rooms.index')">
                                     Rooms
                                 </NavLink>
-                                <NavLink :href="route('reservations.index')" :active="route().current('reservations.index')">
-                                    Reservations
-                                </NavLink>
+                                
                             </div>
                         </div>
 
@@ -260,9 +258,7 @@ const logout = () => {
                         <ResponsiveNavLink :href="route('rooms.index')" :active="route().current('rooms.index')">
                             Rooms
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('reservations.index')" :active="route().current('reservations.index')">
-                            Reservations
-                        </ResponsiveNavLink>
+                        
                     </div>
 
                     <!-- Responsive Settings Options -->
