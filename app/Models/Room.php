@@ -96,6 +96,13 @@ class Room extends Model
         }
         return null;
     }
+
+    public function reservations()
+    {
+        return $this->belongsToMany(Reservation::class, 'reservation_room')
+            ->withPivot('price_per_night')
+            ->withTimestamps();
+    }
     
 
 }

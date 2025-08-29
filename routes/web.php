@@ -8,17 +8,10 @@ use App\Http\Controllers\RoomTypeController;
 use App\Http\Controllers\RoomController;
 use Inertia\Inertia;
 
-// Route::get('/', function () {
-//     return Inertia::render('Welcome', [
-//         'canLogin' => Route::has('login'),
-//         'canRegister' => Route::has('register'),
-//         'laravelVersion' => Application::VERSION,
-//         'phpVersion' => PHP_VERSION,
-//     ]);
-// });
-
 Route::get('/', [ReservationController::class, 'index'])->name('reservation.index');
 Route::get('/reservation/{reservation}', [ReservationController::class, 'book'])->name('reservation.book');
+Route::get('/reservations/{id}', [ReservationController::class, 'show'])->name('reservations.show');
+Route::post('/reservation', [ReservationController::class, 'store'])->name('reservations.store');
 
 
 Route::middleware([
