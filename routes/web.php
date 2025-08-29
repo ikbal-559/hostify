@@ -8,16 +8,16 @@ use App\Http\Controllers\RoomTypeController;
 use App\Http\Controllers\RoomController;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+// Route::get('/', function () {
+//     return Inertia::render('Welcome', [
+//         'canLogin' => Route::has('login'),
+//         'canRegister' => Route::has('register'),
+//         'laravelVersion' => Application::VERSION,
+//         'phpVersion' => PHP_VERSION,
+//     ]);
+// });
 
-Route::get('/reservation', [ReservationController::class, 'index'])->name('reservation.index');
+Route::get('/', [ReservationController::class, 'index'])->name('reservation.index');
 Route::get('/reservation/{reservation}', [ReservationController::class, 'book'])->name('reservation.book');
 
 

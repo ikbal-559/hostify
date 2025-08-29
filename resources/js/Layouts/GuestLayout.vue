@@ -79,6 +79,7 @@ const logout = () => {
 
 <template>
     <div>
+
         <Head :title="title" />
 
         <Banner />
@@ -91,26 +92,25 @@ const logout = () => {
                         <div class="flex">
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
-                                <Link :href="route('dashboard')">
-                                    <ApplicationMark class="block h-9 w-auto" />
+                                <Link :href="route('reservation.index')">
+                                <ApplicationMark class="block h-9 w-auto" />
                                 </Link>
                             </div>
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('reservation.index')" :active="route().current('reservation.index')">
+                                <NavLink :href="route('reservation.index')"
+                                    :active="route().current('reservation.index')">
                                     Reservations
                                 </NavLink>
-                                <NavLink
-                                    :href="route('login')"
-                                    :active="route().current('login')"
-                                >
+                                <NavLink :href="route('login')" :active="route().current('login')">
                                     Log in
                                 </NavLink>
-
-                           
-
+                                <NavLink :href="route('register')" :active="route().current('register')">
+                                    Register
+                                </NavLink>
                             </div>
+
                         </div>
                     </div>
                 </div>
