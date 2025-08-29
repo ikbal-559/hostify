@@ -3,10 +3,110 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use App\Repositories\RoomRepository;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreReservationRequest;
+use Illuminate\Support\Facades\DB;
+use App\Models\RoomType;
 
 class ReservationController extends Controller
 {
+    protected $roomRepo;
+
+    public function __construct()
+    {
+        $this->roomRepo = new RoomRepository();
+    }
+
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        // Validate filter input
+        $validated = $request->validate([
+            'room_type' => 'nullable|exists:room_types,id',
+            'start_date' => 'nullable|date|after_or_equal:today',
+            'end_date' => 'nullable|date|after:start_date',
+        ]);
+
+        $rooms = $this->roomRepo->getFilteredRooms($validated, 15);
+        return inertia('Reservation/Index', [
+            'rooms' => $rooms,
+            'roomTypes' =>  RoomType::all(),
+            'startDate' => $validated['start_date'] ?? null,
+            'endDate' => $validated['end_date'] ?? null,
+            'selectedRoomType' => $validated['room_type'] ?? null,
+            'errors' => session('errors') ? session('errors')->getBag('default')->getMessages() : (object) [],
+        ]);
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreReservationRequest $request)
+    {
+        $validated = $request->validated();
+
+        try {
+            DB::beginTransaction();
+
+            // Create reservation
+            $reservation = \App\Models\Reservation::create([
+                'check_in' => $validated['check_in'],
+                'check_out' => $validated['check_out'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Attach rooms with price_per_night
+            $rooms = \App\Models\Room::whereIn('id', $validated['room_ids'])->get();
+            $roomData = [];
+            foreach ($rooms as $room) {
+                $roomData[$room->id] = [
+                    'price_per_night' => $room->price_per_night,
+                ];
+            }
+            $reservation->rooms()->attach($roomData);
+
+            // Handle guests
+            $guestIds = $this->handleGuests($validated['guests']);
+            $reservation->guests()->attach($guestIds);
+
+            DB::commit();
+            return redirect()->route('reservations.show', ['id' => $reservation->id]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Optionally, log the error: \Log::error($e);
+            return back()->withErrors(['error' => 'Failed to create reservation. Please try again.']);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function book(string $id, Request $request)
+    {
+        $room = Room::findOrFail($id);
+
+        $validated = $request->validate([
+            'start_date' => 'nullable|date|after_or_equal:today',
+            'end_date' => 'nullable|date|after:start_date',
+        ]);
+
+        // Optionally, check room availability here
+        // $isAvailable = $room->isAvailable($validated['start_date'] ?? null, $validated['end_date'] ?? null);
+
+        return inertia('Reservation/Book', [
+            'room' => $room,
+            'startDate' => $validated['start_date'] ?? null,
+            'endDate' => $validated['end_date'] ?? null,
+            // 'isAvailable' => $isAvailable, // Uncomment if availability logic is added
+        ]);
+    }
+
+
     /**
      * Display the specified reservation.
      */
@@ -17,139 +117,52 @@ class ReservationController extends Controller
             'reservation' => $reservation
         ]);
     }
-    /**
-     * Display a listing of the resource.
-     */
-    public function index( Request $request)
-    {
-        $roomTypes = \App\Models\RoomType::all();
-        $rooms = \App\Models\Room::with('roomType');
-
-        // Apply filters if any
-        if ($request->filled('room_type')) {
-            $rooms->where('room_type_id', $request->input('room_type'));
-        }
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $start = $request->input('start_date');
-            $end = $request->input('end_date');
-            $rooms->whereDoesntHave('reservations', function ($query) use ($start, $end) {
-                $query->where(function ($q) use ($start, $end) {
-                    $q->where('check_in', '<=', $end)
-                      ->where('check_out', '>=', $start);
-                });
-            });
-        }
-
-        $rooms = $rooms->get();
-
-        return inertia('Reservation/Index', [
-            'rooms' => $rooms,
-            'roomTypes' => $roomTypes,
-            'startDate' => ($request->has('start_date')) ? $request->get('start_date') : null,
-            'endDate' => ($request->has('end_date')) ? $request->get('end_date') : null,
-            'selectedRoomType' => ($request->has('room_type')) ? $request->get('room_type') : null,
-        ]);
-    }
 
     /**
-     * Show the form for creating a new resource.
+     * Handle guest creation, update, and lookup for reservation.
+     * @param array $guests
+     * @return array $guestIds
      */
-    public function create()
+    private function handleGuests(array $guests): array
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'check_in' => 'required|date|after_or_equal:today',
-            'check_out' => 'required|date|after:check_in',
-            'guests' => 'required|array|min:1',
-            'guests.*.first_name' => 'required|string',
-            'guests.*.last_name' => 'required|string',
-            'guests.*.email' => 'nullable|email',
-            'guests.*.phone' => 'nullable|string',
-            'guests.*.date_of_birth' => 'nullable|date',
-            'guests.*.gender' => 'nullable|in:male,female,other',
-            'room_ids' => 'required|array|min:1',
-            'room_ids.*' => 'exists:rooms,id'
-        ]);
-
-        // Create reservation
-        $reservation = \App\Models\Reservation::create([
-            'check_in' => $validated['check_in'],
-            'check_out' => $validated['check_out'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        // Attach rooms with price_per_night
-        $rooms = \App\Models\Room::whereIn('id', $validated['room_ids'])->get();
-        $roomData = [];
-        foreach ($rooms as $room) {
-            $roomData[$room->id] = [
-                'price_per_night' => $room->price_per_night,
-            ];
-        }
-        $reservation->rooms()->attach($roomData);
-
-        // Attach guests (create if not exist by email/phone)
         $guestIds = [];
-        foreach ($validated['guests'] as $guestData) {
-            $guest = \App\Models\Guest::firstOrCreate(
-                [
-                    'email' => $guestData['email'],
-                    'phone' => $guestData['phone'],
-                ],
-                [
+        foreach ($guests as $guestData) {
+            $guest = null;
+            if (!empty($guestData['email']) || !empty($guestData['phone'])) {
+                $query = \App\Models\Guest::query();
+                if (!empty($guestData['email']) && !empty($guestData['phone'])) {
+                    $query->where('email', $guestData['email'])
+                        ->where('phone', $guestData['phone']);
+                } elseif (!empty($guestData['email'])) {
+                    $query->where('email', $guestData['email']);
+                } elseif (!empty($guestData['phone'])) {
+                    $query->where('phone', $guestData['phone']);
+                }
+                $guest = $query->first();
+            }
+            if ($guest) {
+                $updated = false;
+                foreach (['first_name', 'last_name', 'date_of_birth', 'gender'] as $field) {
+                    if (isset($guestData[$field]) && $guest->$field !== $guestData[$field]) {
+                        $guest->$field = $guestData[$field];
+                        $updated = true;
+                    }
+                }
+                if ($updated) {
+                    $guest->save();
+                }
+            } else {
+                $guest = \App\Models\Guest::create([
                     'first_name' => $guestData['first_name'],
                     'last_name' => $guestData['last_name'],
+                    'email' => $guestData['email'] ?? null,
+                    'phone' => $guestData['phone'] ?? null,
                     'date_of_birth' => $guestData['date_of_birth'] ?? null,
                     'gender' => $guestData['gender'] ?? null,
-                ]
-            );
+                ]);
+            }
             $guestIds[] = $guest->id;
         }
-        $reservation->guests()->attach($guestIds);
-        return redirect()->route('reservations.show', ['id' => $reservation->id]); 
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function book(string $id, Request $request)
-    {
-        $room = Room::findOrFail($id);
-        return inertia('Reservation/Book', [
-            'room' => $room,
-            'startDate' => ($request->has('start_date')) ? $request->get('start_date') : null,
-            'endDate' => ($request->has('end_date')) ? $request->get('end_date') : null,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return $guestIds;
     }
 }

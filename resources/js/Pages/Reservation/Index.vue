@@ -21,16 +21,27 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-gray-200 mb-1">Start Date</label>
-                            <input type="date" v-model="selectedStartDate" class="rounded border-gray-300 dark:bg-gray-700 dark:text-gray-100" />
+                            <input type="date" v-model="selectedStartDate"
+                                class="rounded border-gray-300 dark:bg-gray-700 dark:text-gray-100" />
+
                         </div>
                         <div>
                             <label class="block text-gray-700 dark:text-gray-200 mb-1">End Date</label>
-                            <input type="date" v-model="selectedEndDate" class="rounded border-gray-300 dark:bg-gray-700 dark:text-gray-100" />
+                            <input type="date" v-model="selectedEndDate"
+                                class="rounded border-gray-300 dark:bg-gray-700 dark:text-gray-100" />
+
                         </div>
                         <div class="flex items-end">
                             <BasicButton @click="searchRooms" customClass="px-6 py-2">Search</BasicButton>
                         </div>
                     </div>
+                    <div class="flex flex-col md:flex-row gap-4 mb-6">
+                        <span v-if="errors.start_date" class="text-red-500 text-xs mt-1 block">{{ errors.start_date[0]
+                            }}</span>
+                        <span v-if="errors.end_date" class="text-red-500 text-xs mt-1 block">{{ errors.end_date[0]
+                            }}</span>
+                    </div>
+
 
                     <!-- Room Cards -->
                     <div v-if="rooms.length" class="flex flex-col gap-6">
@@ -47,31 +58,31 @@
                                         Room #{{ room.number }}
                                     </div>
                                     <div class="flex justify-end mt-4">
-                                        <BasicButton 
-                                         @click="$inertia.visit(route('reservation.book', { reservation: room.id, start_date: selectedStartDate, end_date: selectedEndDate }))"
-                                         customClass="px-3 py-1">
+                                        <BasicButton
+                                            @click="$inertia.visit(route('reservation.book', { reservation: room.id, start_date: selectedStartDate, end_date: selectedEndDate }))"
+                                            customClass="px-3 py-1">
                                             Book Now
                                         </BasicButton>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 mb-2">
                                     <div class="text-gray-700 dark:text-gray-200">Type: <span class="font-semibold">{{
-                                            room.room_type?.name ?? '-' }}</span></div>
+                                        room.room_type?.name ?? '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">Bed: <span class="font-semibold">{{
-                                            room.bed_type || '-' }}</span></div>
+                                        room.bed_type || '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">Price: <span class="font-semibold">{{
                                         room.price_per_night ? `$${room.price_per_night}` : '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">Capacity: <span
                                             class="font-semibold">{{
-                                            room.capacity || '-' }}</span></div>
+                                                room.capacity || '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">Floor: <span class="font-semibold">{{
-                                            room.floor || '-' }}</span></div>
+                                        room.floor || '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">Room Size: <span
                                             class="font-semibold">{{
-                                            room.room_size || '-' }}</span></div>
+                                                room.room_size || '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">View: <span class="font-semibold">{{
-                                            room.view
-                                            || '-' }}</span></div>
+                                        room.view
+                                        || '-' }}</span></div>
                                     <div class="text-gray-700 dark:text-gray-200">Smoking Allowed: <span
                                             class="font-semibold">{{ room.smoking_allowed ? 'Yes' : 'No' }}</span></div>
                                 </div>
@@ -88,12 +99,10 @@
 
 <script setup>
 
-
 import { ref, computed } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import BasicButton from '@/Components/BasicButton.vue';
-
 
 const roomTypes = usePage().props.roomTypes || [];
 const rooms = computed(() => {
@@ -107,6 +116,7 @@ const rooms = computed(() => {
 const selectedRoomType = ref(usePage().props.selectedRoomType ?? '');
 const selectedStartDate = ref(usePage().props.startDate ?? '');
 const selectedEndDate = ref(usePage().props.endDate ?? '');
+const errors = usePage().props.errors || {};
 
 function searchRooms() {
     router.get(route('reservation.index'), {
